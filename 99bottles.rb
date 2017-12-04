@@ -1,4 +1,4 @@
-line_3 = "Take one down, pass it around"
+line_3 = 'Take one down, pass it around'
 
 puts '99 bottles of beer on the wall'
 puts '99 bottles of beer'

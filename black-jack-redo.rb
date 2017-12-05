@@ -47,7 +47,7 @@ end
 
 def get_card(card)
 	user_card = ''
-	if card[1] == 'A'
+	if (card[1] == 'A') || (card[1] == 'a')
 		user_card = 'Ace of ' + get_suit(card)
 	elsif card[1] == 'J'
 		user_card = 'Jack of ' + get_suit(card)
@@ -79,6 +79,10 @@ def viewhand(array, is_user)
 			user_hand = user_hand + 'Ace of ' + get_suit(array[count])
 			hand_value += 11
 			count += 1
+		elsif string[1] == 'a'
+			user_hand = user_hand + 'Ace of ' + get_suit(array[count])
+			hand_value += 1
+			count += 1
 		elsif string[1] == 'J'
 			user_hand = user_hand + 'Jack of ' + get_suit(array[count])
 			hand_value += 10
@@ -109,6 +113,11 @@ def viewhand(array, is_user)
 	return user_hand, hand_value
 end
 
+def get_value_of_hand(current_hand)
+	user_hand, hand_value = viewhand(current_hand, 'true')
+	return hand_value
+end
+
 def who_wins(array, current_hand, dealer_hand)
 	string = ''
 	user_hand, hand_value = viewhand(current_hand, 'true')
@@ -118,13 +127,10 @@ def who_wins(array, current_hand, dealer_hand)
 		updated_dealer_hand, dealer_value = viewhand(dealer_hand, 'false')
 		print_with_stars(updated_dealer_hand)
 		while (dealer_value < 17) && (dealer_value < hand_value)
-			#drawn_card = array.pop
-			#dealer_hand.push(drawn_card)
-			#string_append, updated_hand_value = viewhand(dealer_hand, 'false')
-			#dealer_value = updated_hand_value
 			updated_dealer_hand, bool = drawone(array, dealer_hand)
 			array.pop
 			updated_dealer_hand, dealer_value = viewhand(dealer_hand, 'false')
+			print_with_stars(updated_dealer_hand)
 			if bool == true
 				string = string + 'The dealer bust! You win!'
 				print_with_stars(string)
@@ -155,17 +161,65 @@ def who_wins(array, current_hand, dealer_hand)
 	print_with_stars(string)
 end
 
+def hand_contains_ace(current_hand)
+	if (current_hand.include?('SA')) || (current_hand.include?('HA')) || (current_hand.include?('DA') )|| (current_hand.include?('CA'))
+		return true
+	else
+		return false
+	end
+end
+
+def ace_handler(current_hand)
+	array_indexes = current_hand.length
+	array_indexes.times do |array_index|
+		if current_hand[array_index] == 'SA'
+			current_hand[array_index] = 'Sa'
+		elsif current_hand[array_index] == 'HA'
+			current_hand[array_index] = 'Ha'
+		elsif current_hand[array_index] == 'DA'
+			current_hand[array_index] = 'Da'
+		elsif current_hand[array_index] == 'CA'
+			current_hand[array_index] = 'Ca'
+		else
+		end
+	end
+end
+
 def drawone(array, current_hand)
 	bust = false
 	drawn_card = array.pop
-	current_hand.push(drawn_card)
-	string_append, hand_value = viewhand(current_hand, 'true')
-	string = ''
-	string = string + string_append
-	if hand_value > 21
-		bust = true
+	if (drawn_card[1] == 'A') && (current_hand.length >= 1)
+		current_hand.push(drawn_card)
+		if get_value_of_hand(current_hand) > 21
+			if hand_contains_ace(current_hand)
+				ace_handler(current_hand)
+				current_hand_as_string, hand_value = viewhand(current_hand, 'true')
+			else
+				card = current_hand.pop
+				small_value_ace = card[0] + 'a'
+				current_hand.push(small_value_ace)
+				current_hand_as_string, hand_value = viewhand(current_hand, 'true')
+			end
+		else
+			current_hand_as_string, hand_value = viewhand(current_hand, 'true')
+		end
+	else
+		current_hand.push(drawn_card)
+		if get_value_of_hand(current_hand) > 21
+			if hand_contains_ace(current_hand)
+				ace_handler(current_hand)
+				current_hand_as_string, hand_value = viewhand(current_hand, 'true')
+			else
+				current_hand_as_string, hand_value = viewhand(current_hand, 'true')
+				if hand_value > 21
+					bust = true
+				end
+			end
+		else
+			current_hand_as_string, hand_value = viewhand(current_hand, 'true')	
+		end
 	end
-	return string, bust
+	return current_hand_as_string, bust
 end
 
 def gameloop(array, user, dealer)
@@ -185,23 +239,23 @@ def gameloop(array, user, dealer)
 	input.downcase!      
 
 	if input == 'd' && array.length == 52
-		user.push(array.pop)
-		user.push(array.pop)
-		dealer.push(array.pop)
-		dealer.push(array.pop)
+		user_hand, bool = drawone(array, user)
+		user_hand, bool = drawone(array, user)
+		dealer_hand, bool = drawone(array, dealer)
+		dealer_hand, bool = drawone(array, dealer)
 		string = ''
 		string_append, hand_value = viewhand(user, 'true')
 		string = string + string_append + 'The dealer has a ' + get_card(dealer[0])
 		print_with_stars(string)
 		gameloop(array, user, dealer)
 	elsif input == 'd' && array.length != 52
-		drawn_card = array.pop
-		string = 'Your were dealt: ' + get_card(drawn_card) + ' of ' + get_suit(drawn_card)
+		drawn_card = array[array.length-1]
 		updated_hand, bool = drawone(array, user)
+		string = 'Your were dealt: ' + get_card(drawn_card)
 		string = string + updated_hand
 
 		if bool == true
-			print_with_stars(string + "Oh no! Your total is now #{hand_value} which is greater than 21, you lose!")
+			print_with_stars(string + "Oh no! Your total is now #{get_value_of_hand(user)} which is greater than 21, you lose!")
 			user = []
 			dealer = []
 			gameloop(array_gen, user, dealer)

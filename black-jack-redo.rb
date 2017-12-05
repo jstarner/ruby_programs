@@ -1,6 +1,6 @@
 #Rules of the game can be viewed at this webstie https://www.pagat.com/banking/blackjack.html
 
-def array_gen
+def generate_deck_of_cards
 	suits = ['S', 'H', 'D', 'C']
 	cards = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '1', 'J', 'Q', 'K']
 	array = []
@@ -39,15 +39,16 @@ def player_stands(current_deck, player_hand, dealer_hand)
 	who_wins(current_deck, player_hand, dealer_hand)
 end
 
-def get_suit(string)
-	card_suit = ''
-	if string[0] == 'S'
+def get_suit(card)
+	suit = card[0]
+	case suit
+	when 'S'
 		card_suit = "Spades\n"
-	elsif string[0] == 'H'
+	when 'H'
 		card_suit = "Hearts\n"
-	elsif string[0] == 'D'
+	when 'D'
 		card_suit = "Diamonds\n"
-	elsif string[0] == 'C'
+	when 'C'
 		card_suit = "Clubs\n"
 	else 
 		puts 'Something went wrong!'
@@ -57,70 +58,61 @@ def get_suit(string)
 end
 
 def get_card(card)
-	user_card = ''
-	if (card[1] == 'A') || (card[1] == 'a')
+	cards = card[1..-1]
+	case cards
+	when 'A'
 		user_card = 'Ace of '
-	elsif card[1] == 'J'
+	when 'a'
+		user_card = 'Ace of '
+	when 'J'
 		user_card = 'Jack of '
-	elsif card[1] == 'Q'
+	when 'Q'
 		user_card = 'Queen of '
-	elsif card[1] == 'K'
+	when 'K'
 		user_card =  'King of '
-	elsif (card[1].to_i >= 2) || (card[1..-1].to_i <= 10)
-		user_card = "#{card[1..-1]} of "
 	else
-		puts 'Something went wrong when retrieving the card!'
-		return
+		user_card = "#{card[1..-1]} of "
 	end
 
 	user_card = user_card + get_suit(card)
 	return user_card
 end
 
-def viewhand(array, is_user)
-	count = 0
+def viewhand(current_hand_array, is_player)
 	hand_value = 0
-	if is_user == 'true'
-		user_hand = "You have #{array.length} cards in your hand! " + "\n" + "Your hand includes the following:" + "\n"
+	if is_player == 'true'
+		user_hand = "You have #{current_hand_array.length} cards in your hand! " + "\n" + "Your hand includes the following:" + "\n"
 	else
 		user_hand = "The dealer has:" + "\n"
 	end
 
-	while count < array.length
-		string = array[count]
-		if string[1] == 'A'
+	current_hand_array.length.times do |array_index|
+		current_card = current_hand_array[array_index][1..-1]
+		case current_card
+		when 'A'
 			user_hand = user_hand + 'Ace of '
 			hand_value += 11
-			count += 1
-		elsif string[1] == 'a'
+		when 'a'
 			user_hand = user_hand + 'Ace of '
 			hand_value += 1
-			count += 1
-		elsif string[1] == 'J'
+		when 'J'
 			user_hand = user_hand + 'Jack of '
 			hand_value += 10
-			count += 1
-		elsif string[1] == 'Q'
+		when 'Q'
 			user_hand = user_hand + 'Queen of '
 			hand_value += 10
-			count += 1
-		elsif string[1] == 'K'
+		when 'K'
 			user_hand = user_hand + 'King of '
 			hand_value += 10
-			count += 1
-		elsif (string[1].to_i >= 2) || (string[1..-1].to_i <= 10)
-			user_hand = user_hand + "#{string[1..-1]} of "
-			hand_value += string[1..-1].to_i
-			count += 1
 		else
-			puts 'Something went wrong!'
-			return
+			user_hand = user_hand + "#{current_card} of "
+			hand_value += current_card.to_i
 		end
 
-		user_hand = user_hand + get_suit(string)
+		user_hand = user_hand + get_suit(current_hand_array[array_index])
 	end
 
-	if is_user == 'true'
+	if is_player == 'true'
 		user_hand = user_hand + "Your cards add up to #{hand_value} points!" + "\n"
 	else
 		user_hand = user_hand + "The dealers cards add up to #{hand_value} points!" + "\n"
@@ -147,32 +139,30 @@ def compare_player_dealer_points(player_points, dealer_points)
 	return winner
 end
 
-def who_wins(array, current_hand, dealer_hand)
-	string = ''
+def who_wins(current_deck, current_hand, dealer_hand)
 	user_hand, hand_value = viewhand(current_hand, 'true')
 	updated_dealer_hand, dealer_value = viewhand(dealer_hand, 'false')
 	if (dealer_value < 17) && (dealer_value < hand_value)
-		updated__dealer_hand = ''
 		updated_dealer_hand, dealer_value = viewhand(dealer_hand, 'false')
 		print_with_stars(updated_dealer_hand)
 		while (dealer_value < 17) && (dealer_value < hand_value)
-			updated_dealer_hand, bool = drawone(array, dealer_hand)
-			array.pop
+			updated_dealer_hand, bool = drawone_card(current_deck, dealer_hand)
+			current_deck.pop
 			updated_dealer_hand, dealer_value = viewhand(dealer_hand, 'false')
 			print_with_stars(updated_dealer_hand)
 			if bool == true
-				string = string + 'The dealer bust! You win!'
-				print_with_stars(string)
+				who_wins_string = 'The dealer bust! You win!'
+				print_with_stars(who_wins_string)
 				return
 			end
 		end
 
-		string = user_hand + updated_dealer_hand + compare_player_dealer_points(hand_value, dealer_value)
+		who_wins_string = user_hand + updated_dealer_hand + compare_player_dealer_points(hand_value, dealer_value)
 	else
-		string = user_hand + updated_dealer_hand + compare_player_dealer_points(hand_value, dealer_value)
+		who_wins_string = user_hand + updated_dealer_hand + compare_player_dealer_points(hand_value, dealer_value)
 	end
 
-	print_with_stars(string)
+	print_with_stars(who_wins_string)
 end
 
 def hand_contains_ace(current_hand)
@@ -192,7 +182,7 @@ def ace_handler(current_hand)
 	end
 end
 
-def drawone(array, current_hand)
+def drawone_card(array, current_hand)
 	bust = false
 	drawn_card = array.pop
 	if (drawn_card[1] == 'A') && (current_hand.length >= 1)
@@ -241,8 +231,8 @@ def drawone(array, current_hand)
 	return current_hand_as_string, bust
 end
 
-def gameloop(array, user, dealer)
-	if array.length == 52
+def gameloop(current_deck, user, dealer)
+	if current_deck.length == 52
 		puts  'd - Deal hand'
 		puts  'q - Quit'
 		print 'What would you like to do? '
@@ -257,49 +247,48 @@ def gameloop(array, user, dealer)
 	input = gets.chomp
 	input.downcase!      
 
-	if input == 'd' && array.length == 52
-		user_hand, bool = drawone(array, user)
-		user_hand, bool = drawone(array, user)
-		dealer_hand, bool = drawone(array, dealer)
-		dealer_hand, bool = drawone(array, dealer)
-		string = ''
-		string_append, hand_value = viewhand(user, 'true')
-		string = string + string_append + 'The dealer has a ' + get_card(dealer[0])
-		print_with_stars(string)
-		gameloop(array, user, dealer)
-	elsif input == 'd' && array.length != 52
-		drawn_card = array[array.length-1]
-		updated_hand, bool = drawone(array, user)
-		string = 'Your were dealt: ' + get_card(drawn_card)
-		string = string + updated_hand
+	if input == 'd' && current_deck.length == 52
+		user_hand, bool = drawone_card(current_deck, user)
+		user_hand, bool = drawone_card(current_deck, user)
+		dealer_hand, bool = drawone_card(current_deck, dealer)
+		dealer_hand, bool = drawone_card(current_deck, dealer)
+		hand_as_string, hand_value = viewhand(user, 'true')
+		output_string = hand_as_string + 'The dealer has a ' + get_card(dealer[0])
+		print_with_stars(output_string)
+		gameloop(current_deck, user, dealer)
+	elsif input == 'd' && current_deck.length != 52
+		drawn_card = current_deck[current_deck.length-1]
+		updated_hand, bool = drawone_card(current_deck, user)
+		output_string = 'Your were dealt: ' + get_card(drawn_card)
+		output_string = output_string + updated_hand
 
 		if bool == true
-			print_with_stars(string + "Oh no! Your total is now #{get_value_of_hand(user)} which is greater than 21, you lose!")
+			print_with_stars(output_string + "Oh no! Your total is now #{get_value_of_hand(user)} which is greater than 21, you lose!")
 			user = []
 			dealer = []
-			gameloop(array_gen, user, dealer)
+			gameloop(generate_deck_of_cards, user, dealer)
 		else
-			print_with_stars(string)
-			gameloop(array, user, dealer)
+			print_with_stars(output_string)
+			gameloop(current_deck, user, dealer)
 		end
-	elsif input == 'v' && array.length != 52
+	elsif input == 'v' && current_deck.length != 52
 		player_views_hand(user)
-		gameloop(array, user, dealer)
-	elsif input == 's' && array.length != 52
-		player_stands(array, user, dealer)
+		gameloop(current_deck, user, dealer)
+	elsif input == 's' && current_deck.length != 52
+		player_stands(current_deck, user, dealer)
 		user = []
 		dealer = []
-		gameloop(array_gen, user, dealer)
+		gameloop(generate_deck_of_cards, user, dealer)
 	elsif input == 'q'
 		puts 'Goodbye!'
 		exit
 	else
 		puts 'Please enter a valid input!'
-		gameloop(array, user, dealer)
+		gameloop(current_deck, user, dealer)
 	end
 end
 
 user = []
 dealer = []
 print_with_stars('Welcome to the Casino!')
-gameloop(array_gen, user, dealer)
+gameloop(generate_deck_of_cards, user, dealer)

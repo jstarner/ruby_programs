@@ -1,27 +1,3 @@
-puts 'Welcome to the Casino!'
-
-def array_gen(array)
-	suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs']
-	cards = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
-	value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-	array = []
-	count = 0
-	count2 = 0
-	count3 = 0
-
-	while count < 4
-		while count2 < 13
-		hash = { suit: suits[count], card: cards[count2], dealt: false, value: value[count2]}
-		array.push(hash)
-		count2 += 1
-		count3 += 1
-		end
-		count += 1
-		count2 = 0
-	end
-	return array
-end
-
 def print_with_stars(string)
 	puts '*' * 60
 	puts '*' * 60
@@ -30,13 +6,29 @@ def print_with_stars(string)
 	puts '*' * 60
 end
 
-def viewhand(array, string)
+print_with_stars('Welcome to the Casino!')
+
+def create_deck_of_cards_array
+	suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs']
+	cards = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
+	value = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
+	deck_of_cards = []
+
+	suits.each do |suit|
+		13.times do |y|
+		deck_of_cards.push({suit: suit, card: cards[y], dealt: false, value: value[y]})
+		end
+	end
+	return deck_of_cards
+end
+
+def viewhand(hand, string)
 	count3 = 0
 	count4 = 0
-	while count3 < array.length
-		if array[count3][:dealt] == true
-			string += array[count3][:card] + ' of ' + array[count3][:suit] + "\n"
-			count4 += array[count3][:value]
+	while count3 < hand.length
+		if hand[count3][:dealt] == true
+			string += hand[count3][:card] + ' of ' + hand[count3][:suit] + "\n"
+			count4 += hand[count3][:value]
 		else
 		end
 		count3 += 1
@@ -69,17 +61,17 @@ def dealer(count)
 	end
 end
 
-def draw(array, cards)
+def draw(current_deck, cards)
 	number = rand(52)
 	if cards == 50
-		return array[number]
-	elsif array[number][:dealt] == true
-		draw(array, cards)
+		return current_deck[number]
+	elsif current_deck[number][:dealt] == true
+		draw(current_deck, cards)
 	else
-		array[number][:dealt] = true
-		puts array[number][:card] + ' of ' + array[number][:suit]
+		current_deck[number][:dealt] = true
+		puts current_deck[number][:card] + ' of ' + current_deck[number][:suit]
 		cards = cards - 1
-		draw(array, cards)
+		draw(current_deck, cards)
 	end
 end
 
@@ -103,19 +95,19 @@ def drawone(array, cards, count)
 	end
 end
 
-def gameloop(array, user, cards)
-	def view_deck(array)
+def gameloop(current_deck, user, cards)
+	def view_deck(current_deck)
 		count3 = 0
 		while count3 < 52
 			if array[count3][:dealt] == false
-				puts array[count3][:card] + ' of ' + array[count3][:suit]
+				puts current_deck[count3][:card] + ' of ' + current_deck[count3][:suit]
 			else
 			end
 			count3 += 1
 		end
 	end
 
-	array = array.sort_by{rand}
+	current_deck = current_deck.sort_by{rand}
 
 	if cards == 52
 		puts 'd - Deal hand'
@@ -130,64 +122,57 @@ def gameloop(array, user, cards)
 	end
 
 	input = gets.chomp
-	input.downcase!
+	input = input[0].downcase
 
 	if input == 'd' && cards == 52
 		#print_with_stars()
 		puts 'Your were dealt: '
-		user.push(draw(array, cards))
-		value = handcount(array)
+		user.push(draw(current_deck, cards))
+		value = handcount(current_deck)
 		puts "Your cards add up to #{value} points!"
 		cards = 50
 		#format
 		puts '-------'
-		gameloop(array, user, cards)
+		gameloop(current_deck, user, cards)
 	elsif input == 'd' && cards != 52
 		#print_with_stars()
-		count4 = handcount(array)
-		ha, bool = drawone(array, cards, count4)
+		count4 = handcount(current_deck)
+		ha, bool = drawone(current_deck, cards, count4)
 		user.push(ha)
 		#user.push(drawone(array, cards, count4))
 		cards = cards - 1
 		#format
 		puts '-------'
 		if bool == true
-			array = []
 			user = []
 			cards = 52
-			array = array_gen(array)
-			gameloop(array, user, cards)
+			gameloop(create_deck_of_cards_array, user, cards)
 		else
-			gameloop(array, user, cards)
+			gameloop(current_deck, user, cards)
 		end
 	elsif input == 'v' && cards != 52
 		string = "You have #{52-cards} cards in your hand! " + "\n" + "Your hand includes the following:" + "\n"
-		count4, string2 = viewhand(array, string)
+		count4, string2 = viewhand(current_deck, string)
 		string = string2 + "Your cards add up to #{count4} points!" + "\n"
 		print_with_stars(string)
 		puts '-------'
-		gameloop(array, user, cards)
+		gameloop(current_deck, user, cards)
 	elsif input == 's' && cards != 52
 		string = "You have #{52-cards} cards in your hand! " + "\n" + "Your hand includes the following:" + "\n"
-		count4, string = viewhand(array, string)
+		count4, string = viewhand(current_deck, string)
 		string += dealer(count4)
 		print_with_stars(string)
-		array = []
 		user = []
 		cards = 52
-		array = array_gen(array)
-		gameloop(array, user, cards)
+		gameloop(create_deck_of_cards_array, user, cards)
 	elsif input == 'q'
 		puts 'Goodbye!'
 		exit
 	else
 		puts 'Please enter a valid input!'
-		gameloop(array, user, cards)
+		gameloop(current_deck, user, cards)
 	end
 end
 
-array = []
-user = []
 cards = 52
-array = array_gen(array)
-gameloop(array, user, cards)
+gameloop(create_deck_of_cards_array, [], cards)
